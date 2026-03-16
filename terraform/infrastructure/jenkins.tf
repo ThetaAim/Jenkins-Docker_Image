@@ -19,7 +19,7 @@ cd /home/ubuntu
 
 git clone https://github.com/ThetaAim/devops-production-lab.git
 
-cd Jenkins-Docker_Image
+cd devops-production-lab/ci/jenkins
 
 docker build -t jenkins-devops .
 
