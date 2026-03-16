@@ -14,6 +14,25 @@ pipeline {
             }
         }
 
+        stage('Check changes') {
+            steps {
+                script {
+                    def changes = sh(
+                        script: "git diff --name-only HEAD~1 HEAD",
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Changed files:\n${changes}"
+
+                    if (!changes.contains("services/app")) {
+                        echo "No changes in services/app — stopping pipeline"
+                        currentBuild.result = 'NOT_BUILT'
+                        error("Skipping build")
+                    }
+                }
+            }
+        }
+
         stage('Prepare variables') {
             steps {
                 script {
