@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     docker.io \
-    maven \
+    #maven \
     #nodejs \
     # npm \
     && rm -rf /var/lib/apt/lists/*
