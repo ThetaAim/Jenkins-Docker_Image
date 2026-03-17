@@ -5,17 +5,21 @@ USER root
 RUN apt-get update && apt-get install -y \
     unzip \
     curl \
+    git \
     docker.io \
-    git 
+    maven \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install && \
     rm -rf aws awscliv2.zip
 
-RUN usermod -aG docker jenkins
+COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
 
-# EXPOSE 8080
-# EXPOSE 50000
+RUN usermod -aG docker jenkins
 
 USER jenkins
