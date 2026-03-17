@@ -17,10 +17,11 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     ./aws/install && \
     rm -rf aws awscliv2.zip
 
+ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
+
 COPY casc.yaml /var/jenkins_home/casc.yaml
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 
-COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
 
 RUN usermod -aG docker jenkins
