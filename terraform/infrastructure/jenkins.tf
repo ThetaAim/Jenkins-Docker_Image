@@ -37,7 +37,7 @@ docker run -d \
   --name jenkins \
   jenkins-devops
 
-# isleep 60
+# sleep 60
 
 # docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword > /home/ubuntu/jenkins_pass
 EOF

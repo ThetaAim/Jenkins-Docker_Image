@@ -21,9 +21,13 @@ jenkins:
 #               username: "your-user"
 #               password: "your-token"
 
+
 jobs:
   - script: >
       pipelineJob('app-pipeline') {
+        triggers {
+          githubPush()
+        }
         definition {
           cpsScm {
             scm {
