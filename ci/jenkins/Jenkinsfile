@@ -61,24 +61,22 @@ pipeline {
           steps {
            sh '''
              docker rm -f test-app || true
-             docker run -d -p 8081:80 --name test-app app-image
+             docker run -d \
+             --name test-app \
+             --network app-net \
+             app-image
              
-             trap "docker rm -f test-app" EXIT
-             
-             echo "waiting for nginx container to load"
-             for i in {1..40}; do
-               if curl -s http://localhost:8081 > /dev/null; then
+             for i in {1..20}; do
+               if curl -s http://test-app > /dev/null; then
                  echo "App is ready"
-                 break
+                 exit 0
                fi
-               sleep 2
+               sleep 1
              done
              
-             if ! curl -f http://localhost:8081; then
                echo "App failed to start"
                docker logs test-app
                exit 1
-             fi
              
              '''   
            
