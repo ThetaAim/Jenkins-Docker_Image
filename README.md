@@ -7,12 +7,12 @@
 
 ---
 
-## 📌 Overview
+## Overview
 This project demonstrates a **production-like CI/CD pipeline** that builds, tests, and deploys a containerized application using **Jenkins, Docker, and AWS**.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 Developer → Git → Jenkins (Docker) → Build Image → Push to ECR → EC2 → ALB → Users
@@ -50,7 +50,7 @@ Replaces the running container on EC2.
 
 ---
 
-## 🌐 Networking
+## Networking
 
 - Custom Docker bridge network: **app-net**
 - Container-to-container communication via DNS:
@@ -63,7 +63,7 @@ curl http://test-app
 
 ---
 
-## ❤️ Health Checks
+## Health Checks
 
 - ALB continuously verifies application availability:
 
@@ -76,7 +76,7 @@ User-Agent: ELB-HealthChecker/2.0
 
 ---
 
-## ⚠️ Limitations
+## Limitations
 
 - Deployment runs on a **single EC2 instance**
 - Short downtime may occur during container replacement
@@ -85,7 +85,7 @@ User-Agent: ELB-HealthChecker/2.0
 
 ---
 
-## 🔮 Future Improvements
+## Future Improvements
 
 - Multi-instance deployment behind ALB  
 - Rolling / Blue-Green deployment  
@@ -94,7 +94,7 @@ User-Agent: ELB-HealthChecker/2.0
 
 ---
 
-## 🧠 Key Concepts Demonstrated
+## Key Concepts Demonstrated
 
 - Docker container lifecycle  
 - Docker networking (**bridge + DNS**)  
