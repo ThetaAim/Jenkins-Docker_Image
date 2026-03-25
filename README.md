@@ -1,43 +1,104 @@
-# AWS Production-Like DevOps Platform
+🚀 DevOps CI/CD Pipeline with Jenkins, Docker & AWS
 
-## Overview
-This repository contains a production-like DevOps laboratory built from scratch to simulate real-world cloud operations.
+📌 Overview
 
-The focus of this project is **operational reliability**, not feature development.
-It is designed to model how modern DevOps teams provision infrastructure, deploy workloads, handle failures, and recover systems under realistic conditions.
+This project demonstrates a production-like CI/CD pipeline that builds, tests, and deploys a containerized application using Jenkins, Docker, and AWS.
 
-The platform emphasizes:
-- Infrastructure as Code
-- Failure simulation and recovery
-- Secure and controlled access
-- Observability-driven operations
-- Clear incident documentation
+⸻
 
-## Philosophy
-This is **not** a demo project.
-This is **not** a step-by-step tutorial.
-This is **not** a copy of an existing reference architecture.
+🏗️ Architecture
 
-Instead, this repository represents a controlled environment where systems are intentionally stressed, misconfigured, and broken in order to:
-- observe real failure modes
-- practice systematic debugging
-- apply corrective actions
-- document operational decisions and lessons learned
+Developer → Git → Jenkins (Docker) → Build Image → Push to ECR → EC2 → ALB → Users
 
-## What This Project Demonstrates
-- End-to-end infrastructure provisioning on AWS using Terraform
-- Kubernetes-based application runtime (EKS)
-- CI/CD workflows with Jenkins
-- Network isolation and access control (RBAC, NetworkPolicies)
-- Monitoring, alerting, and autoscaling strategies
-- Incident-driven thinking and post-mortem style documentation
+Components
+	•	Jenkins – runs inside Docker and orchestrates the pipeline
+	•	Docker – builds and runs application containers
+	•	AWS ECR – stores versioned images
+	•	EC2 – hosts the running containers
+	•	ALB (Application Load Balancer) – performs health checks and routes traffic
 
-## Audience
-This project is intended for:
-- DevOps Engineers
-- Platform Engineers
-- SREs
-- Hiring managers reviewing hands-on operational experience
+⸻
 
-The goal is not to show *that* things work,
-but to demonstrate **how failures are identified, analyzed, and resolved** in a production-like environment.
+🔄 Pipeline Flow
+
+1. Build
+
+Jenkins builds a Docker image.
+
+⸻
+
+2. Test
+
+Runs a temporary container inside a custom network:
+
+docker run -d --name test-app --network app-net app-image
+
+Validates service readiness:
+
+curl -sf http://test-app
+
+
+⸻
+
+3. Deploy
+
+Replaces the running container on EC2.
+
+⸻
+
+🌐 Networking
+	•	Custom Docker bridge network: app-net
+	•	Enables container-to-container communication via DNS:
+
+curl http://test-app
+
+No reliance on localhost or static IPs
+
+⸻
+
+❤️ Health Checks
+	•	ALB continuously verifies application availability:
+
+GET /
+User-Agent: ELB-HealthChecker/2.0
+
+	•	Application returns HTTP 200 OK when healthy
+
+⸻
+
+⚠️ Limitations
+	•	Deployment currently runs on a single EC2 instance
+	•	Short downtime may occur during container replacement
+
+Infrastructure supports scaling to multiple instances, but zero-downtime requires a rolling or blue/green deployment strategy
+
+⸻
+
+🔮 Future Improvements
+	•	Multi-instance deployment behind ALB
+	•	Rolling / Blue-Green deployment strategy
+	•	Kubernetes-based orchestration
+	•	Dedicated /health endpoint
+
+⸻
+
+🧠 Key Concepts Demonstrated
+	•	Docker container lifecycle
+	•	Docker networking (bridge + DNS)
+	•	Jenkins running inside Docker with host socket access
+	•	CI/CD pipeline design
+	•	Health-based validation using curl
+	•	Basic production deployment patterns
+
+⸻
+
+💬 Notes
+	•	Containers are treated as ephemeral
+	•	Each deployment replaces the previous version
+	•	Networking is handled through Docker networks instead of host-based access
+
+⸻
+
+🎯 Interview Pitch
+
+Built a CI/CD pipeline using Jenkins inside Docker, deploying containerized applications to AWS EC2 with ALB health checks and Docker-based service networking.
