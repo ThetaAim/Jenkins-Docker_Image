@@ -125,10 +125,7 @@ pipeline {
         stage('Deploy via SSM') {
             steps {
                 sh """
-                aws ssm send-command 
-                --targets "Key=tag:Role,Values=app" 
-                --document-name "AWS-RunShellScript"                   
-                --parameters commands='[
+                aws ssm send-command --targets "Key=tag:Role,Values=app" --document-name "AWS-RunShellScript" --parameters commands='[
                    "docker pull ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${GIT_COMMIT_SHORT}",
                    "docker stop devops-app || true",
                    "docker rm devops-app || true",
@@ -145,6 +142,7 @@ pipeline {
              
              if curl -fsS --max-time 3 --retry 20 http://${ALB_DNS} > /dev/null; then
                echo "Health OK"
+               exit 0
              else
                echo "Health failed"
                exit 1
