@@ -75,8 +75,55 @@ resource "aws_iam_policy" "jenkins_backup_s3" {
   })
 }
 
+# --- Policy for sen SSM
+
+resource "aws_iam_policy" "ssm_send_command" {
+  name = "ssm-send-command"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:SendCommand"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+
+# --- Alb Policies
+
+resource "aws_iam_policy" "alb_read_policy" {
+  name = "alb-read-policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "elasticloadbalancing:DescribeLoadBalancers"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 
 # --- Attach policies
+
+# --- Alb attach policy
+
+resource "aws_iam_role_policy_attachment" "alb_read_attach" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.alb_read_policy.arn
+}
+
 
 # --- ECR attach policy
 
@@ -90,6 +137,11 @@ resource "aws_iam_role_policy_attachment" "ecr_push_attach" {
 resource "aws_iam_role_policy_attachment" "ssm_attach" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "ssm_send_attach" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.ssm_send_command.arn
 }
 
 # S3 policy attachment

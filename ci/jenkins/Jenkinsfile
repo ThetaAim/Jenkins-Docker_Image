@@ -46,8 +46,12 @@ pipeline {
                         returnStdout: true
                     ).trim()
                     
-                    env.ALB_DNS = "devops-lab-alb-1917788526.eu-central-1.elb.amazonaws.com"
-
+                    env.ALB_DNS = sh(
+                      script: """aws elbv2 describe-load-balancers \
+                      --query "LoadBalancers[?LoadBalancerName=='devops-lab-alb'].DNSName | [0]"
+                      --output text""",
+                      returnStdout: true
+                    ).trim()
                 }
             }
         }
@@ -63,12 +67,14 @@ pipeline {
         stage('Test Build') {
           steps {
            sh '''
+             docker stop test-app || true
              docker rm -f test-app || true
              docker run -d \
              --name test-app \
              --network app-net \
              app-image:${GIT_COMMIT_SHORT}
              
+             sleep 15
              for i in {1..10}; do
                if curl -sf http://test-app > /dev/null; then
                  echo "App is ready"
