@@ -45,6 +45,20 @@ pipeline {
                         script: "aws sts get-caller-identity --query Account --output text",
                         returnStdout: true
                     ).trim()
+                    
+                    env.ALB_DNS = sh(
+                    script: """aws elbv2 describe-load-balancers \
+                    --query "LoadBalancers[?LoadBalancerName=='devops-lab-alb'].DNSName | [0]" \
+                    --output text""",
+                    returnStdout: true
+                    ).trim()
+                    
+                    if (!env.ALB_DNS) {
+                    error("Failed to fetch ALB_DNS") 
+                    }                    
+                    echo "ALB DNS: ${env.ALB_DNS}"
+                    
+
                 }
             }
         }
@@ -52,7 +66,7 @@ pipeline {
         stage('Build Docker image') {
             steps {
                 sh '''
-                docker build -t app-image ./services/app
+                docker build -t app-image:${GIT_COMMIT_SHORT} ./services/app
                 '''
             }
         }
@@ -64,11 +78,12 @@ pipeline {
              docker run -d \
              --name test-app \
              --network app-net \
-             app-image
+             app-image:${GIT_COMMIT_SHORT}
              
              for i in {1..10}; do
                if curl -sf http://test-app > /dev/null; then
                  echo "App is ready"
+                 docker rm -f test-app || true
                  exit 0
                fi
                sleep 1
@@ -76,6 +91,7 @@ pipeline {
              
                echo "App failed to start"
                docker logs test-app
+               docker rm -f test-app || true
                exit 1
              
              '''   
@@ -96,10 +112,10 @@ pipeline {
         stage('Tag image') {
             steps {
                 sh '''
-                docker tag app-image \
+                docker tag app-image:$GIT_COMMIT_SHORT \
                 $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GIT_COMMIT_SHORT
                
-                docker tag app-image \
+                docker tag app-image:$GIT_COMMIT_SHORT \
                 $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
                 '''
             }
@@ -115,6 +131,41 @@ pipeline {
                 $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
                 '''
             }
+        }
+        
+        stage('Deploy via SSM') {
+            steps {
+                sh """
+                aws ssm send-command \
+                --targets "Key=tag:Role,Values=app" \
+                --document-name "AWS-RunShellScript" \                  
+                --parameters commands='[
+                   "docker pull ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${GIT_COMMIT_SHORT}",
+                   "docker stop devops-app || true",
+                   "docker rm devops-app || true",
+                   "docker run -d --name devops-app -p 80:80 ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${GIT_COMMIT_SHORT}"
+                   ]'        
+                  """
+            }
+        }
+
+
+        stage('Verify Health'){
+         steps {
+             sh """
+             
+             if curl -fsS --max-time 3 --retry 20 http://${ALB_DNS} > /dev/null; then
+               echo "Health OK"
+             else
+               echo "Health failed"
+               exit 1
+               fi
+     
+               """
+       
+         }
+         
+    
         }
     }
 }

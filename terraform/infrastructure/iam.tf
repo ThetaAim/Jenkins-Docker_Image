@@ -94,12 +94,12 @@ resource "aws_iam_role_policy_attachment" "ssm_attach" {
 
 # S3 policy attachment
 
- resource "aws_iam_role_policy_attachment" "s3_attach" {
+resource "aws_iam_role_policy_attachment" "s3_attach" {
   count = var.enable_s3 ? 1 : 0
 
   role       = aws_iam_role.ec2_role.name
   policy_arn = aws_iam_policy.jenkins_backup_s3[count.index].arn
- }
+}
 
 # --- Instance profile
 
