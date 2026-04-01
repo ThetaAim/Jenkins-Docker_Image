@@ -141,11 +141,26 @@ pipeline {
             }
         }
 
+         
+        stage('Wait for Deploy') {
+            steps {
+                sh '''
+                    COMMAND_ID=$(cat /tmp/ssm_command_id)
+                    INSTANCE_ID=$(aws ssm list-command-invocations \
+                        --command-id $COMMAND_ID \
+                        --query "CommandInvocations[0].InstanceId" \
+                        --output text)
+                    aws ssm wait command-executed \
+                        --command-id $COMMAND_ID \
+                        --instance-id $INSTANCE_ID
+                    echo "Deploy confirmed"
+                '''
+            }
+        }
 
          stage('Verify Health') {
              steps {
                  sh '''
-                 sleep 20
                  if curl -f --max-time 3 --retry 3 http://${ALB_DNS}/health > /dev/null; then
                      echo "Health OK"
                  else
